@@ -7,6 +7,6 @@ kindeditor for vue component
 
 2. index.html入口页面引入kindeditor-all.js
 
-<script src=<%= htmlWebpackPlugin.options.path %>/kindeditor/kindeditor-all.js></script>
+  <script src=<%= htmlWebpackPlugin.options.path %>/kindeditor/kindeditor-all.js></script>
 
 3. 使用参看 views/form.vue
