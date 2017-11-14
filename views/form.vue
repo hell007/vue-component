@@ -32,7 +32,7 @@ import { fetchItem, fetchSave } from '@/api'  //api
 
 export default {
     name: 'articleDetail',
-    components: { Tinymce, Upload, Kindeditor },
+    components: {  Kindeditor },
     data() {
         return {
             postForm: {
