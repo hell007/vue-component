@@ -69,10 +69,7 @@ export default {
             //编辑器失去焦点(blur)时执行的回调函数
             afterBlur: function () {
                 //将编辑器的内容设置到原来的textarea控件里
-                //_this.editor.sync()
-                // 触发input事件以同步value值
-                const html = this.html();
-                _this.$emit('input', html);
+                _this.editor.sync()
             }
         })  
     },
