@@ -5,7 +5,6 @@
 1、treetable使用的数据 data-source需要进过getTree(arr)方法装载成树结构数据
 
 ##### utils  index.js
-
   /**
    * 获取树
    * [getTree description]
