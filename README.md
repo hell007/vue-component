@@ -6,7 +6,7 @@
 
 [ztree component for vue;使用jquery插件/封装](./vue-ztree/readme.md)
 
-[vue-touch](https://github.com/vuejs/vue-touch);hammer.js实现
+[vue-touch;hammer.js实现](https://github.com/vuejs/vue-touch)
 
 [组件](http://blog.csdn.net/wang1006008051/article/details/77970492)
 
