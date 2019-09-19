@@ -1,86 +1,72 @@
 <template>
-<div class='container editor-container'>
-    <textarea class='textarea' :id="kindeditorId"></textarea>
-</div>
+  <div class="kindeditor">
+    <textarea class='textarea' 
+      ref="kindeditor" 
+      v-model="localValue" 
+      name="content">
+    </textarea>
+  </div>
 </template>
 
 <script>
-/**
- * kindeditor 富文本编辑器组件
- * http://kindeditor.net/doc.php
- */
+import '../../../node_modules/kindeditor/kindeditor-all.js'
+import '../../../node_modules/kindeditor/lang/zh-CN.js'
+import '../../../node_modules/kindeditor/themes/default/default.css'
+
 export default {
-    name: 'kindeditor',
-    components: {},
-    props: {
-        id: {
-            type: String
-        },
-        value: {
-            type: String,   
-            default: ''
-        },
-        width: {
-            type: Number,
-            required: false,
-            default: 800
-        },
-        height: {
-            type: Number,
-            required: false,
-            default: 360
-        }
-    },
-    data() {
-        return {
-            editor: null,
-            hasChange: false,
-            hasInit: false,
-            kindeditorId: this.id || 'vue-ke-' + +new Date()
-        }
-    },
-    watch: {
-        value(val) {
-            if (this.hasChange && this.hasInit) {
-                //console.log('=====',val)
-                this.$nextTick(() => this.editor.html(val))
-            }
-        }
-    },
-    mounted() {
-        const _this = this
-        _this.editor = window.KindEditor.create(`#${this.kindeditorId}`, {
-            width: this.width,
-            height: this.height,
-            autoHeightMode: true,
-            uploadJson: 'http://localhost:3000/apis/article/kindeditor?flag=3',
-            //设置编辑器创建后执行的回调函数
-            afterCreate: function(){
-                if(_this.value){
-                    _this.editor.html(_this.value)
-                }
-                _this.hasInit = true
-            },
-            //编辑器内容发生变化后执行的回调函数
-            afterChange: function(){
-                _this.hasChange = true
-            },
-            //编辑器失去焦点(blur)时执行的回调函数
-            afterBlur: function () {
-                //将编辑器的内容设置到原来的textarea控件里
-                _this.editor.sync()
-            }
-        })  
-    },
-    methods: {
-        
-    },
-    destroyed() {
-        window.KindEditor.remove(`#${this.kindeditorId}`)
+  name: 'kindeditor',
+  props: ['options', 'value'],
+  data() {
+    return {
+      editor: null,
+      hasInit: false,
+      localValue: ''
     }
+  },
+  watch: {
+    localValue: 'updateValue',
+    value: 'setDefault'
+  },
+  mounted() {
+    this.initKindeditor()
+  },
+  methods: {
+    initKindeditor() {
+      var self = this
+        // 默认参数
+      var options = {
+          uploadJson: 'upload/image',
+          width: '100%',
+          height: '200',
+          afterCreate() {
+            self.hasInit = true
+          },
+          afterChange() {
+            self.hasInit = false
+            self.localValue = this.html()
+          }
+        }
+        // 调用外部参数
+      if (self.options) {
+        for (var i in self.options) {
+          options[i] = self.options[i]
+        }
+      }
+      self.editor = window.KindEditor.create(self.$refs.kindeditor, options)
+    },
+    // 设置初始值
+    setDefault() {
+      if (this.hasInit) {
+        this.editor.html(this.value)
+      }
+    },
+    // 修改父件的值
+    updateValue() {
+      this.$emit('input', this.localValue)
+    }
+  }
 }
 </script>
-
 <style scoped>
 .container {
     position: relative
