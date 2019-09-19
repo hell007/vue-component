@@ -6,12 +6,12 @@
         ref="postForm">
 
         <!-- 富文本编辑器使用 -->
-        <el-form-item label-width="100px" prop="content" label="文章内容:">
-                <Kindeditor 
-                    v-model="postForm.content"
-                    :width=800
-                    :height=300
-                    ref="editor"></Kindeditor>
+        <el-form-item label="图文详情" prop="contents">
+            <div class="p-form__rich">
+              <Kindeditor
+                :options="options.editor"
+                v-model="postForm.content"></Kindeditor>
+           </div>
         </el-form-item>
 
         <div class="el-operator">
@@ -37,6 +37,9 @@ export default {
             postForm: {
                 id: null,
                 content:'',
+            },
+            options: {
+                editor: {}
             },
             fetchSuccess: true,
             loading: false
