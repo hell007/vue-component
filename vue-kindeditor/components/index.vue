@@ -68,7 +68,7 @@ export default {
 }
 </script>
 <style scoped>
-.container {
+.kindeditor {
     position: relative
 }
 .textarea {
