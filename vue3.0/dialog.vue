@@ -120,3 +120,15 @@ export default class extends Vue {
   }
 }
 </style>
+
+// 父组件中使用
+<m-dialog
+      @close="closeDialog"
+      @submit="handleSubmit"
+      v-if="visible"
+      cancel="取消"
+      confirm="确定"
+      title="提示"
+    >
+      <!-- 您确定要取消该订单吗 -->
+</m-dialog>
