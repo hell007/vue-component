@@ -10,4 +10,6 @@
 
 [组件](http://blog.csdn.net/wang1006008051/article/details/77970492)
 
+[Vue项目兼容IE11](https://ligang.blog.csdn.net/article/details/103554818?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-5.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-5.channel_param)
 
+[vue config](https://cli.vuejs.org/zh/config/#transpiledependencies)
