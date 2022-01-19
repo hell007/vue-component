@@ -84,7 +84,11 @@ export default class HistoryRecord {
   }
   
   update(data) {
-    this.step++
+    if (this.step === this.maxStack - 1) {
+      this.actionPoints.shift()
+    } else {
+      this.step++
+    }
     this.actionPoints[this.step] = deepClone(data)
     this.reset()
   }
