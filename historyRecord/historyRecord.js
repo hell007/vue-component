@@ -25,6 +25,8 @@ export default class HistoryRecord {
     this.autoUpdate = autoUpdate
     this.updateTime = 0 // 上次的操作时间
     this.key = key
+    this.isRedo = false
+    this.isUndo = false
   }
 
   init(data) {
@@ -95,6 +97,8 @@ export default class HistoryRecord {
 
   reset() {
     this.updateTime = Date.now()
+    this.isUndo = this.step !== 0
+    this.isRedo = this.step !== this.actionPoints.length - 1
   }
 
   // bindEvent() {
