@@ -1,8 +1,10 @@
-## vue3-custom-component Example Usage
-
-#### 1、data-table
-
-```vue
+<!--
+ * @Description:data-table / custom-filter 结合
+ * @Author: zenghua.wang
+ * @Date: 2022-12-26 10:22:48
+ * @LastEditors: zenghua.wang
+ * @LastEditTime: 2024-03-29 07:59:06
+-->
 <template>
   <data-table
     ref="customTable"
@@ -10,7 +12,7 @@
     :options="state.options"
     :data="state.data"
     :page-data="state.pageData"
-    :show-form="state.options.showForm"
+    :show-form="state.showForm"
     :form-options="state.formOptions"
     @reload="loadData"
     @row-click="onRowClick"
@@ -21,34 +23,45 @@
     @on-save="onSave"
   >
     <!-- 搜索条件插槽  -->
-    <template #slotMysearch="{ query }">
+    <template #slot1="{ query }">
       <el-input
-        v-model="query.mysearch"
+        v-model="query.testSlot1"
         placeholder="请输入"
+        :style="{ width: state.options.searchComponentWidth }"
+      />
+    </template>
+    <template #slotSearch="{ query }">
+      <el-input
+        v-model="query.testSlot1"
+        placeholder="请输入"
+        :style="{ width: state.options.searchComponentWidth }"
       />
     </template>
 
     <!-- 列插槽 -->
     <template #summary="{ row }">
       <!-- <template #summary="{ row, column, index }"> -->
+      <!-- <span>{{ row.summary }} {{ column }} {{ index }}</span> -->
       <span v-html="row.summary"></span>
     </template>
   </data-table>
 </template>
-
 <script setup lang="ts">
 import { ref, reactive, getCurrentInstance } from 'vue';
-import { isEmpty, sleep } from '@/utils';
+// import vueDataTable from '@/components';
+import { isEmpty, sleep, dateFormat } from '@/utils';
 
 const app = getCurrentInstance()?.appContext.config.globalProperties;
-
+/**
+ * 代理对象
+ */
 const customTable = ref<any>(null);
 const state = reactive<any>({
   loading: false,
   options: {
     header: {
       slotHeader: null,
-      title: 'table案列'
+      title: 'data-table案列'
     },
     showForm: true,
     labelWidth: 100,
@@ -67,10 +80,32 @@ const state = reactive<any>({
         plain: false,
         circle: false,
         icon: 'Delete',
-        clickEvent: ({selectionList:any[]}) => {
+        clickEvent: (data: any) => {
+          data.query = {};
+          console.log('data-table的state=', data);
           onDelete(data.selectionList);
         }
       },
+      {
+        label: '导入',
+        type: 'success',
+        plain: false,
+        circle: false,
+        icon: 'Upload',
+        clickEvent: (data: any) => {
+          console.log('导入', data);
+        }
+      },
+      {
+        label: '导出',
+        type: 'success',
+        plain: false,
+        circle: false,
+        icon: 'Download',
+        clickEvent: (data: any) => {
+          console.log('导出', data);
+        }
+      }
     ],
     menuRight: [],
     selection: true,
@@ -106,7 +141,7 @@ const state = reactive<any>({
         rules: [
           {
             required: true,
-            message: '请输入',
+            message: '请输入姓名',
             trigger: 'blur'
           }
         ]
@@ -115,11 +150,13 @@ const state = reactive<any>({
         prop: 'age',
         label: '年龄',
         type: 'number',
+        hide: false
       },
       {
         prop: 'sex',
         label: '性别',
-        type: 'select', 
+        type: 'radio', // 'select', 'radio', 'checkbox', 'switch'
+        hide: false,
         search: true,
         dicData: [
           {
@@ -151,14 +188,53 @@ const state = reactive<any>({
         }
       },
       {
+        prop: 'like',
+        label: '喜好',
+        type: 'checkbox',
+        hide: false,
+        multiple: true,
+        search: true,
+        dicData: [
+          {
+            label: '体育',
+            value: '1'
+          },
+          {
+            label: '运动',
+            value: '2'
+          }
+        ]
+      },
+      {
         prop: 'city',
         label: '城市',
         type: 'cascader',
+        hide: false,
         search: true,
         props: {
           clearable: true
+          // value: 'id',
+          // label: 'name',
+          // children: 'children',
+          // multiple: true,
+          // checkStrictly: true,
+          // expandTrigger: 'hover'
         },
         dicData: [
+          {
+            label: '云南',
+            value: 530120,
+            children: [
+              {
+                label: '昆明',
+                value: 530121
+              },
+              {
+                label: '曲靖',
+                value: 530122
+              }
+            ]
+          },
           {
             label: '北京',
             value: 100000,
@@ -170,11 +246,27 @@ const state = reactive<any>({
             ]
           }
         ]
+        // formatter: (row, column) => {}
+      },
+      {
+        prop: 'phone',
+        label: '手机号码',
+        type: 'input',
+        span: 12,
+        required: true,
+        rules: [
+          {
+            required: true,
+            message: '请输入手机号码',
+            trigger: 'blur'
+          }
+        ]
       },
       {
         prop: 'status',
         label: '状态',
         type: 'select',
+        hide: false,
         search: true,
         dicData: [
           {
@@ -233,6 +325,7 @@ const state = reactive<any>({
         prop: 'datetime',
         label: '日期',
         type: 'daterange',
+        hide: false,
         // 'date',
         // 'datetime',
         // 'datetimerange',
@@ -242,7 +335,12 @@ const state = reactive<any>({
         // 'monthrange',
         // 'week'
         search: true,
+        // format: 'YYYY/MM/DD',
         valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        formatter: (row: any, column: any) => {
+          console.log(column);
+          return dateFormat(row.datetime);
+        },
         sortable: true
       },
       {
@@ -254,33 +352,72 @@ const state = reactive<any>({
         slotName: 'summary'
       },
       {
-        prop: 'mysearch',
+        prop: 'slot1',
         label: '搜索插槽',
         type: 'input',
         hide: true,
         search: true,
-        slotSearch: 'slotMysearch'
+        slotSearch: 'slot1',
+        slotForm: null
       }
+      // {
+      //   prop: 'slot2',
+      //   label: '表单插槽',
+      //   type: 'input',
+      //   hide: true,
+      //   search: false,
+      //   slotSearch: null,
+      //   slotForm: 'slot2'
+      // },
+      // {
+      //   prop: 'slot3',
+      //   label: '插槽',
+      //   type: 'input',
+      //   hide: true,
+      //   search: true,
+      //   slotSearch: 'slotSearch',
+      //   slotForm: 'slotForm'
+      // }
     ],
+    slotSearch: null,
+    reloadConditions: {
+      testSearch: '',
+      testcascader: []
+    }
   },
   data: [],
   pageData: { currentPage: 1, pageSize: 10, total: 0 },
   formOptions: {
-    labelWidth: '130',
-    defaultForm: {
-      sex: '1',
-      status: 'all'
-    }
+    formSlot: 'myFormSlot'
   },
   // 测试数据
   query: {
     pageNumber: 1,
     pageSize: 10
   },
+  form: {},
+  cascader: [],
+  cascaderData: [
+    {
+      name: '云南',
+      code: 530120,
+      children: [
+        {
+          name: '昆明',
+          code: 530121
+        },
+        {
+          name: '曲靖',
+          code: 530122
+        }
+      ]
+    }
+  ]
 });
 // 数据加载
 const loadData = async (params = {}) => {
   const queryParams = { ...state.query, ...params };
+  console.log('loadData=', queryParams);
   state.loading = true;
   await sleep(500);
   state.data = [
@@ -290,9 +427,23 @@ const loadData = async (params = {}) => {
       age: 23,
       sex: '1',
       city: 530120,
-      summary: '十三中会议既要',
+      like: '运动',
+      phone: '13688888888',
+      summary: '十三中会议既要<br>主席做指示',
       status: 'finish',
       datetime: '2023-12-28'
+    },
+    {
+      id: 10002,
+      name: '李四',
+      age: 18,
+      sex: '2',
+      city: 530121,
+      like: '体育',
+      phone: '13688888888',
+      summary: '十八中会议既要<br>主席做指示',
+      status: 'processing',
+      datetime: '2024-01-28'
     }
   ];
   state.pageData = {
@@ -315,15 +466,37 @@ const onSizeChange = (size: number) => {
 };
 // 拆分为 查看、编辑、删除以及actionList
 const onRowClick = (row: any) => {
-  console.log('rowClick=', row);
+  console.log(385, row);
 };
 // 查看
 const onView = (row: any) => {
-  console.log('查看=', row);
+  console.log('路由跳转=', row);
 };
 // 删除
 const onDelete = (rows: any[]) => {
+  if (isEmpty(rows)) return;
   console.log('删除=', rows);
+  const self = app;
+  app
+    ?.$confirm('您确定要删除该数据?', '确定删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    .then(() => {
+      const params = { ids: rows };
+      self?.$http
+        .delete('/admin/sysmenu/delete', { params })
+        .then((res: any) => {
+          if (res.code === 200) {
+            loadData();
+            self.$message.success('删除成功！');
+          }
+        })
+        .catch((err: any) => {
+          self.$message.error(err.message);
+        });
+    });
 };
 // 弹窗关闭，表单关闭
 const onClose = () => {
@@ -338,72 +511,3 @@ const onSave = async (form: any) => {
   onClose();
 };
 </script>
-```
-
-
-#### 2、data-form
-
-```vue
-<template>
-  <data-form
-    ref="customForm"
-    v-loading="state.loading"
-    :visible="state.visible"
-    :title="state.title"
-    :columns="state.columns"
-    :options="state.formOptions"
-    :form-props="state.form"
-    @on-close="state.visible = false"
-    @on-confirm="onSave"
-  >
-    <template #slotAvatar="{ form }">
-        <el-upload
-          action="#"
-          :http-request="#"
-          :show-file-list="true"
-          accept="image/*"
-        >
-          <el-icon >
-            <Plus />
-          </el-icon>
-        </el-upload>
-    </template>
-  </data-form>
-</template>
-<script setup>
-import { reactive, computed } from 'vue';
-
-const state = reactive({
-  loading: false,
-  visible: false,
-  title: '个人信息',
-  columns: [
-    {
-      prop: 'avatar',
-      label: '头像',
-      type: 'input',
-      slotForm: 'slotAvatar',
-    },
-    {
-      prop: 'name',
-      label: '姓名',
-      type: 'input',
-      span: 24,
-    },
-  ],
-  formOptions: {
-    width: '50%',
-    labelWidth: 130,
-  },
-  form: {},
-});
-// 保存
-const onSave = (form) => {
-  console.log(form.values)
-};
-</script>
-```
-
-
-
-#### 3、更多案列查看demo
