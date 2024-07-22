@@ -2,60 +2,95 @@
  * @Description:data-table / custom-filter 结合
  * @Author: zenghua.wang
  * @Date: 2022-12-26 10:22:48
- * @LastEditors: zenghua.wang
- * @LastEditTime: 2024-03-29 07:59:06
+ * @LastEditors: wzh 1048523306@qq.com
+ * @LastEditTime: 2024-07-18 20:36:47
 -->
 <template>
-  <data-table
-    ref="customTable"
-    :loading="state.loading"
-    :options="state.options"
-    :data="state.data"
-    :page-data="state.pageData"
-    :show-form="state.showForm"
-    :form-options="state.formOptions"
-    @reload="loadData"
-    @row-click="onRowClick"
-    @size-change="onSizeChange"
-    @current-change="onCurrentChange"
-    @on-view="onView"
-    @on-delete="(row: any) => onDelete([row])"
-    @on-save="onSave"
-  >
-    <!-- 搜索条件插槽  -->
-    <template #slot1="{ query }">
-      <el-input
-        v-model="query.testSlot1"
-        placeholder="请输入"
-        :style="{ width: state.options.searchComponentWidth }"
-      />
-    </template>
-    <template #slotSearch="{ query }">
-      <el-input
-        v-model="query.testSlot1"
-        placeholder="请输入"
-        :style="{ width: state.options.searchComponentWidth }"
-      />
-    </template>
+  <div>
+    <data-table
+      ref="customTable"
+      :loading="state.loading"
+      :options="state.options"
+      :data="state.data"
+      :page-data="state.pageData"
+      :show-form="state.showForm"
+      :form-options="state.formOptions"
+      @reload="loadData"
+      @on-search="onSearch"
+      @row-click="onRowClick"
+      @size-change="onSizeChange"
+      @current-change="onCurrentChange"
+      @on-view="onView"
+      @on-delete="(row: any) => onDelete([row])"
+      @on-save="onSave"
+    >
+      <!-- 搜索条件插槽  -->
+      <template #slot1="{ query, row }">
+        <!-- {{ row }} -->
+        <el-input
+          v-model="query.testSlot1"
+          placeholder="请输入"
+          :style="{ width: state.options.searchComponentWidth }"
+        />
+      </template>
+      <template #slotSearch="{ query, row }">
+        <!-- {{ row }} -->
+        <el-input
+          v-model="query.testSlot1"
+          placeholder="请输入"
+          :style="{ width: state.options.searchComponentWidth }"
+        />
+      </template>
 
-    <!-- 列插槽 -->
-    <template #summary="{ row }">
-      <!-- <template #summary="{ row, column, index }"> -->
-      <!-- <span>{{ row.summary }} {{ column }} {{ index }}</span> -->
-      <span v-html="row.summary"></span>
-    </template>
-  </data-table>
+      <!-- 列插槽 -->
+      <template #sloatAvatar="{ row, column, index }">
+        <img
+          src="https://t7.baidu.com/it/u=1297102096,3476971300&fm=193&f=GIF"
+          width="80px"
+          height="80px"
+        />
+      </template>
+
+      <template #slotPhone="{ row }">
+        {{ row.phone }}
+      </template>
+
+      <template #summary="{ row, column, index }">
+        <!-- {{ index }}={{ row.summary }} -->
+        <!-- <template #summary="{ row, column, index }"> -->
+        <!-- <span>{{ row.summary }} {{ column }} {{ index }}</span> -->
+        <span v-html="row.summary"></span>
+      </template>
+    </data-table>
+
+    <el-dialog
+      v-model="state.visible"
+      title="测试"
+      width="70%"
+      :top="'10px'"
+      draggable
+      :overflow="false"
+      @close="state.visible = false"
+    >
+      <div class="custom-dialog-scrollBar">
+        <dialog-test />
+      </div>
+    </el-dialog>
+  </div>
 </template>
 <script setup lang="ts">
 import { ref, reactive, getCurrentInstance } from 'vue';
-// import vueDataTable from '@/components';
-import { isEmpty, sleep, dateFormat } from '@/utils';
+import DialogTest from './test.vue';
+import { isEmpty, sleep } from '@/utils';
 
 const app = getCurrentInstance()?.appContext.config.globalProperties;
 /**
  * 代理对象
  */
 const customTable = ref<any>(null);
+const authList = ref<any[]>([]);
+authList.value = ['test-add', 'test-edit', 'test-del'];
+
 const state = reactive<any>({
   loading: false,
   options: {
@@ -65,10 +100,13 @@ const state = reactive<any>({
     },
     showForm: true,
     labelWidth: 100,
-    addBtn: true,
-    delBtn: true,
+    // addBtn: true,
+    addBtn: authList.value.includes('test-add'),
+    // delBtn: true,
+    delBtn: authList.value.includes('test-del'),
     viewBtn: true,
-    editBtn: true,
+    // editBtn: true,
+    editBtn: authList.value.includes('test-edit'),
     columnBtn: true,
     refreshBtn: true,
     searchShowBtn: true,
@@ -80,6 +118,7 @@ const state = reactive<any>({
         plain: false,
         circle: false,
         icon: 'Delete',
+        auth: { p: 'test-del', auths: authList.value },
         clickEvent: (data: any) => {
           data.query = {};
           console.log('data-table的state=', data);
@@ -92,6 +131,7 @@ const state = reactive<any>({
         plain: false,
         circle: false,
         icon: 'Upload',
+        auth: { p: 'test-import', auths: authList.value },
         clickEvent: (data: any) => {
           console.log('导入', data);
         }
@@ -107,20 +147,40 @@ const state = reactive<any>({
         }
       }
     ],
-    menuRight: [],
+    menuRight: [
+      {
+        label: '测试',
+        clickEvent: () => {
+          state.visible = true;
+        }
+      }
+    ],
     selection: true,
     index: true,
     showAction: true,
-    actionWidth: 300,
+    actionWidth: 350,
+    // actionStyle: 'half-more',
+    // actionLength: 0,
     actionList: [
       {
-        label: '下载',
+        label: '配置',
+        type: 'primary',
+        icon: 'Setting',
+        clickEvent: (data: any, row: any) => {
+          console.log('配置', data, row);
+        }
+      },
+      {
+        label: '我的下载',
         type: 'success',
         plain: false,
         circle: false,
         icon: 'Download',
-        clickEvent: (data: any, row: any, index: number) => {
-          console.log('下载', data, row, index);
+        showBtn: (row: any) => {
+          return row.name !== '小白';
+        },
+        clickEvent: (data: any, row: any) => {
+          console.log('下载', data, row);
         }
       }
     ],
@@ -147,63 +207,99 @@ const state = reactive<any>({
         ]
       },
       {
-        prop: 'age',
-        label: '年龄',
-        type: 'number',
-        hide: false
+        prop: 'avatar',
+        label: '头像',
+        type: 'input',
+        hide: false,
+        width: 180,
+        slotName: 'sloatAvatar'
       },
       {
-        prop: 'sex',
-        label: '性别',
-        type: 'radio', // 'select', 'radio', 'checkbox', 'switch'
-        hide: false,
-        search: true,
-        dicData: [
+        label: '简介',
+        columns: [
           {
-            label: '男',
-            value: '1'
+            prop: 'age',
+            label: '年龄',
+            type: 'number',
+            hide: true
           },
           {
-            label: '女',
-            value: '2'
-          }
-        ],
-        formatter: (row: any) => {
-          let value = '';
-          switch (row.sex) {
-            case '1': {
-              value = '男';
-              break;
+            prop: 'sex',
+            label: '性别',
+            type: 'radio', // 'select', 'radio', 'checkbox', 'switch'
+            hide: false,
+            search: true,
+            dicData: [
+              {
+                label: '男',
+                value: '1'
+              },
+              {
+                label: '女',
+                value: '2'
+              }
+            ],
+            formatter: (row: any) => {
+              let value = '';
+              switch (row.sex) {
+                case '1': {
+                  value = '男';
+                  break;
+                }
+                case '2': {
+                  value = '女';
+                  break;
+                }
+                default: {
+                  value = '保密';
+                  break;
+                }
+              }
+              return value;
             }
-            case '2': {
-              value = '女';
-              break;
-            }
-            default: {
-              value = '保密';
-              break;
-            }
-          }
-          return value;
-        }
-      },
-      {
-        prop: 'like',
-        label: '喜好',
-        type: 'checkbox',
-        hide: false,
-        multiple: true,
-        search: true,
-        dicData: [
-          {
-            label: '体育',
-            value: '1'
           },
           {
-            label: '运动',
-            value: '2'
+            prop: 'like',
+            label: '喜好',
+            type: 'checkbox',
+            hide: false,
+            multiple: true,
+            search: true,
+            dicData: [
+              {
+                label: '体育',
+                value: '1'
+              },
+              {
+                label: '运动',
+                value: '2'
+              }
+            ]
+          },
+          {
+            prop: 'phone',
+            label: '手机号码',
+            type: 'input',
+            span: 12,
+            slotName: 'slotPhone',
+            required: true,
+            rules: [
+              {
+                required: true,
+                message: '请输入手机号码',
+                trigger: 'blur'
+              }
+            ]
           }
         ]
+      },
+      {
+        prop: 'summary',
+        label: '概述',
+        type: 'textarea',
+        hide: false,
+        span: 24,
+        slotName: 'summary'
       },
       {
         prop: 'city',
@@ -245,22 +341,50 @@ const state = reactive<any>({
               }
             ]
           }
-        ]
+        ],
         // formatter: (row, column) => {}
+        onChange: (val: any) => {
+          console.log('城市 change=', val);
+        }
       },
       {
-        prop: 'phone',
-        label: '手机号码',
-        type: 'input',
-        span: 12,
-        required: true,
-        rules: [
+        prop: 'type',
+        label: '类型',
+        type: 'select',
+        hide: false,
+        search: true,
+        dicData: [
           {
-            required: true,
-            message: '请输入手机号码',
-            trigger: 'blur'
+            label: '全部',
+            value: 'all'
+          },
+          {
+            label: '已完成',
+            value: 'finish'
+          },
+          {
+            label: '处理中',
+            value: 'processing'
           }
-        ]
+        ],
+        formatter: (row: any) => {
+          let value = '';
+          switch (row.status) {
+            case 'finish': {
+              value = '已完成';
+              break;
+            }
+            case 'processing': {
+              value = '处理中';
+              break;
+            }
+            default: {
+              value = '全部';
+              break;
+            }
+          }
+          return value;
+        }
       },
       {
         prop: 'status',
@@ -301,8 +425,7 @@ const state = reactive<any>({
           return value;
         },
         isTag: true,
-        tagFormatter: (value: string, row: any) => {
-          console.log(row);
+        tagFormatter: (value: string) => {
           let tag = {};
           switch (value) {
             case 'finish': {
@@ -319,6 +442,9 @@ const state = reactive<any>({
             }
           }
           return tag;
+        },
+        onChange: (val: any) => {
+          console.log('change=', val);
         }
       },
       {
@@ -335,21 +461,9 @@ const state = reactive<any>({
         // 'monthrange',
         // 'week'
         search: true,
-        // format: 'YYYY/MM/DD',
+        format: 'YYYY-MM-DD',
         valueFormat: 'YYYY-MM-DD HH:mm:ss',
-        formatter: (row: any, column: any) => {
-          console.log(column);
-          return dateFormat(row.datetime);
-        },
         sortable: true
-      },
-      {
-        prop: 'summary',
-        label: '概述',
-        type: 'textarea',
-        hide: false,
-        span: 24,
-        slotName: 'summary'
       },
       {
         prop: 'slot1',
@@ -395,6 +509,7 @@ const state = reactive<any>({
     pageNumber: 1,
     pageSize: 10
   },
+  visible: false,
   form: {},
   cascader: [],
   cascaderData: [
@@ -431,7 +546,7 @@ const loadData = async (params = {}) => {
       phone: '13688888888',
       summary: '十三中会议既要<br>主席做指示',
       status: 'finish',
-      datetime: '2023-12-28'
+      datetime: '2023-12-28 23:33:22'
     },
     {
       id: 10002,
@@ -443,7 +558,19 @@ const loadData = async (params = {}) => {
       phone: '13688888888',
       summary: '十八中会议既要<br>主席做指示',
       status: 'processing',
-      datetime: '2024-01-28'
+      datetime: '2024-01-28 23:33:22'
+    },
+    {
+      id: 10003,
+      name: '小白',
+      age: 23,
+      sex: '1',
+      city: 530120,
+      like: '运动',
+      phone: '13688888888',
+      summary: '十三中会议既要<br>主席做指示',
+      status: 'finish',
+      datetime: '2023-12-28 23:33:22'
     }
   ];
   state.pageData = {
@@ -463,6 +590,12 @@ const onCurrentChange = (current: number) => {
 const onSizeChange = (size: number) => {
   state.pageData.pageSize = size;
   loadData({ pageSize: size });
+};
+// 搜索
+const onSearch = (params) => {
+  console.log('搜索=', params);
+  // state.query.pageNumber = 1;
+  // loadData(params);
 };
 // 拆分为 查看、编辑、删除以及actionList
 const onRowClick = (row: any) => {
@@ -511,3 +644,11 @@ const onSave = async (form: any) => {
   onClose();
 };
 </script>
+<style lang="scss" scoped>
+:deep(.el-dialog__body) {
+  overflow: hidden auto;
+  height: auto;
+  min-height: 300px;
+  max-height: calc(100vh - 100px);
+}
+</style>

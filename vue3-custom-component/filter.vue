@@ -1,14 +1,19 @@
 <template>
   <div>
-    <custom-filter :columns="state.options.filters" :options="state.options" @on-search="onSearch">
-      <template #slotTime>
+    <custom-filter
+      :columns="state.options.filters"
+      :form="state.form"
+      :options="state.options"
+      @on-search="onSearch"
+    >
+      <template #slotTime="{ query }">
         <el-date-picker
-          v-model="state.datetime"
-          type="datetimerange"
+          v-model="query.datetime"
+          type="daterange"
           range-separator="至"
           start-placeholder="开始时间"
           end-placeholder="结束时间"
-          value-format="YYYY-MM-DD HH:mm:ss"
+          value-format="YYYY-MM-DD"
         />
       </template>
     </custom-filter>
@@ -37,9 +42,6 @@ import { sleep } from '@/utils';
 const state = reactive({
   loading: false,
   options: {
-    header: {
-      slotName: 'slotHeader'
-    },
     labelWidth: 100,
     emptyBtn: true,
     index: true,
@@ -222,7 +224,10 @@ const state = reactive({
     ]
   },
   data: [],
-  formOptions: {},
+  form: {
+    datetime: ['2024-03-02', '2024-04-02'],
+    type: 'day'
+  },
   query: {
     entity: {
       startDate: '',
@@ -232,7 +237,6 @@ const state = reactive({
       storeType: ''
     }
   },
-  datetime: [],
   currentRow: {}
 });
 
